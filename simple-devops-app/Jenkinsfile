@@ -1,27 +1,30 @@
 pipeline {
-  agent any
-  tools { nodejs 'node18' }  // from the NodeJS plugin you set up
+    agent any
+    tools { nodejs 'node18' }
 
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
-    }
-
-    stage('Install & Test') {
-      steps {
-        dir('simple-devops-app') {
-          sh 'node -v && npm -v'
-          sh 'npm ci || npm install'
-          sh 'npm test'
-          sh 'echo "Tests passed" > result.txt'
-          archiveArtifacts artifacts: 'result.txt', fingerprint: true
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
         }
-      }
-    }
 
-    // We'll enable Docker or Ansible later
-    // stage('Build Docker Image') {
-    //   steps { sh 'docker build -t simple-devops-node-app .' }
-    // }
-  }
+        stage('Install & Test') {
+            steps {
+                dir('simple-devops-app') {
+                    sh 'node -v && npm -v'
+                    sh 'npm ci || npm install'
+                    sh 'npm test'
+                    sh 'echo "Tests passed" > result.txt'
+                    archiveArtifacts artifacts: 'result.txt', fingerprint: true
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('simple-devops-app') {
+                    sh 'docker build -t simple-devops-node-app .'
+                }
+            }
+        }
+    }
 }
