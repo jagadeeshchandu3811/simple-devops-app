@@ -1,33 +1,29 @@
 pipeline {
   agent any
-  environment {
-    IMAGE_NAME = "simple-devops-node-app"
-  }
+  tools { nodejs 'node18' }  // uses the NodeJS tool you configured
+
   stages {
     stage('Checkout') {
-      steps {
-        checkout scm
-      }
+      steps { checkout scm }
     }
-    stage('Install') {
+
+    stage('Install & Test') {
       steps {
-        sh 'npm install'
-      }
-    }
-    stage('Test') {
-      steps {
+        sh 'node -v && npm -v'
+        sh 'npm ci || npm install'
         sh 'npm test'
+        sh 'echo "Tests passed" > result.txt'
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'result.txt', fingerprint: true
+        }
       }
     }
-    stage('Build Docker Image') {
-      steps {
-        sh 'docker build -t $IMAGE_NAME .'
-      }
-    }
-    stage('Archive') {
-      steps {
-        archiveArtifacts artifacts: '**/*.js', fingerprint: true
-      }
-    }
+
+    // We'll enable Docker build after we wire Docker access for Jenkins
+    // stage('Build Docker Image') {
+    //   steps { sh 'docker build -t simple-devops-node-app .' }
+    // }
   }
 }
