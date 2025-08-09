@@ -1,30 +1,56 @@
 pipeline {
-    agent any
-    tools { nodejs 'node18' }
+  agent any
+  tools { nodejs 'node18' }
 
-    stages {
-        stage('Checkout') {
-            steps { checkout scm }
-        }
+  environment {
+    IMAGE_LOCAL = "simple-devops-node-app"
+    DOCKERHUB_REPO = "jagadeeshchandu3811/simple-devops-node-app" // <-- change this
+  }
 
-        stage('Install & Test') {
-            steps {
-                dir('simple-devops-app') {
-                    sh 'node -v && npm -v'
-                    sh 'npm ci || npm install'
-                    sh 'npm test'
-                    sh 'echo "Tests passed" > result.txt'
-                    archiveArtifacts artifacts: 'result.txt', fingerprint: true
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                dir('simple-devops-app') {
-                    sh 'docker build -t simple-devops-node-app .'
-                }
-            }
-        }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
     }
+
+    stage('Install & Test') {
+      steps {
+        dir('simple-devops-app') {
+          sh 'node -v && npm -v'
+          sh 'npm ci || npm install'
+          sh 'npm test'
+          sh 'echo "Tests passed" > result.txt'
+          archiveArtifacts artifacts: 'result.txt', fingerprint: true
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        dir('simple-devops-app') {
+          sh 'docker build -t $IMAGE_LOCAL .'
+        }
+      }
+    }
+
+    stage('Docker Login & Push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+          sh '''
+            set -e
+            COMMIT=$(git rev-parse --short HEAD)
+            # tag local image to your Docker Hub repo
+            docker tag $IMAGE_LOCAL $DOCKERHUB_REPO:latest
+            docker tag $IMAGE_LOCAL $DOCKERHUB_REPO:$COMMIT
+
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+
+            docker push $DOCKERHUB_REPO:latest
+            docker push $DOCKERHUB_REPO:$COMMIT
+
+            docker logout
+          '''
+        }
+      }
+    }
+  }
 }
