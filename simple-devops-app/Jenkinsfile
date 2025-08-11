@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'node18' // Ensure this matches the Node.js version name configured in Jenkins > Global Tool Configuration
+        nodejs 'node18'
     }
 
     parameters {
@@ -10,7 +10,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id' // Replace with your actual Docker Hub credentials ID from Jenkins credentials
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id'
     }
 
     stages {
@@ -35,7 +35,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${params.IMAGE_NAME}")
+                    docker.build("${params.IMAGE_NAME}", ".")
                 }
             }
         }
