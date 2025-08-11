@@ -1,12 +1,16 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'node18' // Make sure this tool name matches the one you configured in Jenkins
+    }
+
     parameters {
         string(name: 'IMAGE_NAME', defaultValue: 'jagadeeshchandu3811/simple-devops-node-app:latest', description: 'Docker Hub image name (e.g., username/app-name:tag)')
     }
 
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id' // Replace with your actual credentials ID in Jenkins
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id' // Replace with your actual credentials ID
     }
 
     stages {
