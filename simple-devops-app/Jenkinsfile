@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'node18' // Make sure this tool name matches the one you configured in Jenkins
+        nodejs 'node18' // Ensure this matches the Node.js version name configured in Jenkins > Global Tool Configuration
     }
 
     parameters {
@@ -10,7 +10,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id' // Replace with your actual credentials ID
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id' // Replace with your actual Docker Hub credentials ID from Jenkins credentials
     }
 
     stages {
@@ -22,13 +22,13 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'cd app && npm install'
+                sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'cd app && npm test || echo "Tests skipped or failed (for now)"'
+                sh 'npm test || echo "Tests skipped or failed (for now)"'
             }
         }
 
@@ -43,8 +43,10 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    sh "docker push ${params.IMAGE_NAME}"
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${IMAGE_NAME}
+                    '''
                 }
             }
         }
