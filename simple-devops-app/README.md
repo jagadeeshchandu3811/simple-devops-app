@@ -4,7 +4,7 @@ This is a simple Node.js application containerized with Docker and deployed via 
 
 ## Features
 
-- Node.js Express server
+- .Node.js Express server
 - Jenkinsfile for CI/CD
 - Dockerfile for containerization
 - Test stage with simulated test
