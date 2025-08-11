@@ -22,13 +22,13 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                sh 'cd app && npm install'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'npm test || echo "Tests skipped or failed (for now)"'
+                sh 'cd app && npm test || echo "Tests skipped or failed (for now)"'
             }
         }
 
