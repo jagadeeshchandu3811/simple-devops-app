@@ -1,16 +1,9 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'node18' // Make sure this tool name matches the one you configured in Jenkins
-    }
-
-    parameters {
-        string(name: 'IMAGE_NAME', defaultValue: 'jagadeeshchandu3811/simple-devops-node-app:latest', description: 'Docker Hub image name (e.g., username/app-name:tag)')
-    }
-
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id' // Replace with your actual credentials ID
+        IMAGE_NAME = 'jagadeeshchandu3811/simple-devops-node-app:latest'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials-id' // Replace with your actual credentials ID in Jenkins
     }
 
     stages {
@@ -35,7 +28,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${params.IMAGE_NAME}")
+                    docker.build("${env.IMAGE_NAME}")
                 }
             }
         }
@@ -43,11 +36,12 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${env.DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    sh "docker push ${params.IMAGE_NAME}"
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${IMAGE_NAME}
+                    '''
                 }
             }
         }
     }
 }
-
